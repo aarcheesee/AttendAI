@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dashboard</title>
+<link rel="stylesheet" href="/static/style.css">
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="main">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <h2>🎓 AttendAI</h2>
+
+        <a href="/dashboard">Dashboard</a>
+        <a href="/camera">Start Camera</a>
+        <a href="/download">Download</a>
+        <a href="/reset">Reset</a>
+        <a href="/logout" style="margin-top:20px; color:#f87171;">Logout</a>
+        <a href="/admin">Admin Panel</a>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+        <!-- FLASH MESSAGES -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="toast-container">
+            {% for category, message in messages %}
+                <div class="toast {{category}}">
+                    {{message}}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <h1>Dashboard</h1>
+
+        <!-- STATS -->
+        <div class="stats">
+            <div class="card">
+                <h2>{{total}}</h2>
+                <p>Total Records</p>
+            </div>
+
+            <div class="card">
+                <h2>{{students}}</h2>
+                <p>Students</p>
+            </div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="actions">
+            <form action="/set_lecture" method="post">
+                <input type="text" name="lecture" placeholder="Lecture Name" required>
+                <button class="btn primary">Start Lecture</button>
+            </form>
+
+            <form action="/add_student" method="post">
+                <input type="text" name="name" placeholder="Student Name" required>
+                <button class="btn success">Add Student</button>
+            </form>
+        </div>
+
+        <!-- CHART -->
+        <div class="chart-box">
+            <canvas id="attendanceChart"></canvas>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-box">
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Lecture</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                </tr>
+
+                {% for row in records %}
+                <tr>
+                    <td>{{row.Name}}</td>
+                    <td>{{row.Lecture}}</td>
+                    <td>{{row.Date}}</td>
+                    <td>{{row.Time}}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<!-- CHART SCRIPT -->
+<script>
+const data = {
+    labels: {{ chart_labels | safe }},
+    datasets: [{
+        label: 'Attendance Count',
+        data: {{ chart_values | safe }},
+        borderWidth: 2
+    }]
+};
+
+new Chart(document.getElementById('attendanceChart'), {
+    type: 'bar',
+    data: data
+});
+</script>
+
+<script>
+setTimeout(() => {
+    document.querySelectorAll('.toast').forEach(t => t.remove());
+}, 3000);
+</script>
+
+</body>
+</html>
