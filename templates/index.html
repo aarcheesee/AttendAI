@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Attendance</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .camera-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+        }
+        .video-box {
+            border-radius: 16px;
+            overflow: hidden;
+            border: 3px solid #0f172a;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+            margin-bottom: 20px;
+        }
+        .video-box img { display: block; }
+        .badge {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            color: #166534;
+            padding: 8px 18px;
+            border-radius: 99px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main">
+    <div class="sidebar">
+        <h2>🎓 AttendAI</h2>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/camera" style="background:#1e293b; color:white;">📷 Camera</a>
+        <a href="/qr">📱 QR Scanner</a>
+        <a href="/download">Download CSV</a>
+        <a href="/logout" style="margin-top:20px; color:#f87171;">Logout</a>
+    </div>
+
+    <div class="content">
+        <div class="camera-wrap">
+            <h1>📸 Live Face Attendance</h1>
+            <p class="badge">🟢 Recognition Active</p>
+
+            <div class="video-box">
+                <img src="/video" width="700">
+            </div>
+
+            <a href="/dashboard">
+                <button class="btn primary">⬅ Back to Dashboard</button>
+            </a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

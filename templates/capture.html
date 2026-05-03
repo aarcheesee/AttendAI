@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Face Capture - {{ name }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .capture-container {
+            text-align: center;
+            padding: 40px;
+        }
+        .video-box {
+            border-radius: 16px;
+            overflow: hidden;
+            border: 3px solid #0f172a;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+            margin: 20px auto;
+            display: inline-block;
+        }
+        .progress-bar {
+            width: 80%;
+            max-width: 600px;
+            height: 30px;
+            background: #e2e8f0;
+            border-radius: 15px;
+            margin: 20px auto;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main">
+    <div class="sidebar">
+        <h2>🎓 AttendAI</h2>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/students">👥 Students</a>
+        <a href="/camera">Start Camera</a>
+        <a href="/logout" style="margin-top:20px; color:#f87171;">Logout</a>
+    </div>
+
+    <div class="content">
+        <div class="capture-container">
+            <h1>📸 Capturing Face Samples</h1>
+            <p style="color: #64748b; margin-bottom: 20px;">
+                Student: <strong>{{ name }}</strong>
+            </p>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar" style="width: 0%;">
+                    <span id="progressText">0 / 60</span>
+                </div>
+            </div>
+
+            <div class="video-box">
+                <img src="/video_feed_capture/{{ name }}" width="640" height="480">
+            </div>
+
+            <div style="margin-top: 20px;">
+                <p style="color: #64748b; font-size: 14px;">
+                    💡 Look directly at the camera and slowly move your head slightly
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Poll capture status
+const studentName = "{{ name }}";
+const maxSamples = 60;
+
+function updateProgress() {
+    fetch(`/capture_status/${studentName}`)
+        .then(res => res.json())
+        .then(data => {
+            const percent = (data.count / maxSamples) * 100;
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressText').textContent = 
+                `${data.count} / ${maxSamples}`;
+
+            if (data.done) {
+                setTimeout(() => {
+                    window.location.href = `/confirm/${studentName}`;
+                }, 2000);
+            } else {
+                setTimeout(updateProgress, 500);
+            }
+        })
+        .catch(err => {
+            console.error('Error fetching status:', err);
+            setTimeout(updateProgress, 1000);
+        });
+}
+
+// Start polling
+updateProgress();
+</script>
+
+</body>
+</html>

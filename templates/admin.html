@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="main">
+
+    <div class="sidebar">
+        <h2>⚙️ Admin</h2>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/admin" style="background:#1e293b; color:white;">Users</a>
+        <a href="/logout" style="margin-top:20px; color:#f87171;">Logout</a>
+    </div>
+
+    <div class="content">
+        <h1>Admin Panel</h1>
+
+        <!-- Add user form -->
+        <div class="table-box" style="margin-bottom:30px; padding:24px;">
+            <h3 style="margin-top:0;">Add New User</h3>
+            <form action="/admin_add_user" method="post">
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <input type="text"     name="username" placeholder="Username" required>
+                    <input type="password" name="password" placeholder="Password" required>
+                    <button class="btn success">Add User</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Users table -->
+        <!-- FIX: use row.id and row.username (sqlite3.Row named columns) -->
+        <div class="table-box">
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Action</th>
+                </tr>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>
+                        {% if user.username != "admin" %}
+                        <form action="/delete_user/{{ user.id }}" method="post"
+                              style="display:inline;"
+                              onsubmit="return confirm('Delete {{ user.username }}?');">
+                            <button class="btn" style="background:#dc2626; color:white;">
+                                Delete
+                            </button>
+                        </form>
+                        {% else %}
+                        <span style="color:#94a3b8; font-size:13px;">Protected</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

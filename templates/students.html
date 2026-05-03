@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Students</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        .page-header h1 { margin: 0; }
+
+        /* Student cards grid */
+        .students-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 20px;
+        }
+        .student-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            overflow: hidden;
+            transition: box-shadow 0.2s, transform 0.2s;
+            cursor: pointer;
+        }
+        .student-card:hover {
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+
+        /* Card header with photo */
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px 20px 16px 20px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .card-photo {
+            width: 64px;
+            height: 64px;
+            border-radius: 14px;
+            object-fit: cover;
+            border: 2px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+        .card-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 14px;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            flex-shrink: 0;
+            border: 2px solid #e2e8f0;
+        }
+        .card-title { flex: 1; min-width: 0; }
+        .card-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #0f172a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .card-roll {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 3px;
+        }
+
+        /* Pills */
+        .pill-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .pill {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .pill-blue   { background:#eff6ff; color:#2563eb; }
+        .pill-green  { background:#f0fdf4; color:#16a34a; }
+        .pill-purple { background:#faf5ff; color:#7c3aed; }
+
+        /* Card body - detail rows */
+        .card-body {
+            padding: 16px 20px;
+        }
+        .detail-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 0;
+            border-bottom: 1px solid #f8fafc;
+            font-size: 13px;
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-icon { width: 18px; text-align: center; flex-shrink: 0; }
+        .detail-label {
+            color: #94a3b8;
+            min-width: 70px;
+            flex-shrink: 0;
+        }
+        .detail-value {
+            color: #1e293b;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Card footer */
+        .card-footer {
+            padding: 12px 20px;
+            background: #fafafa;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .added-date {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+        .delete-btn {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .delete-btn:hover { background:#dc2626; color:white; border-color:#dc2626; }
+
+        .edit-btn {
+            background: #eff6ff;
+            color: #2563eb;
+            border: 1px solid #bfdbfe;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-right: 6px;
+        }
+        .edit-btn:hover { background:#2563eb; color:white; border-color:#2563eb; }
+
+        /* Edit modal form */
+        .edit-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 16px;
+        }
+        .edit-form-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .edit-form-group input {
+            padding: 10px 14px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 9px;
+            font-size: 14px;
+            transition: border 0.2s;
+        }
+        .edit-form-group input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+        }
+        .edit-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 20px;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #94a3b8;
+        }
+        .empty-state .icon { font-size: 56px; margin-bottom: 16px; }
+        .empty-state h3 { font-size: 18px; color: #64748b; margin: 0 0 8px; }
+        .empty-state p  { font-size: 14px; margin: 0 0 24px; }
+
+        /* Search bar */
+        .search-bar {
+            padding: 10px 16px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            width: 240px;
+            transition: border 0.2s;
+        }
+        .search-bar:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 30px;
+            border-bottom: 2px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #0f172a;
+            font-size: 24px;
+        }
+
+        .close-btn {
+            background: #f1f5f9;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: #e2e8f0;
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-box.green {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .stat-box.orange {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stat-box.red {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .stat-box h3 {
+            font-size: 32px;
+            margin: 0 0 5px 0;
+        }
+
+        .stat-box p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 13px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-top: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #94a3b8;
+        }
+
+        .view-graph-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 8px;
+        }
+
+        .view-graph-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+<div class="main">
+    <div class="sidebar">
+        <h2>🎓 AttendAI</h2>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/students" style="background:#1e293b; color:white;">👥 Students</a>
+        <a href="/camera">Start Camera</a>
+        <a href="/qr">📱 Scan QR</a>
+        <a href="/download">Download CSV</a>
+        <a href="/admin">Admin Panel</a>
+        <a href="/logout" style="margin-top:20px; color:#f87171;">Logout</a>
+    </div>
+
+    <div class="content">
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="toast-container">
+            {% for category, message in messages %}
+            <div class="toast {{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <!-- Page header -->
+        <div class="page-header">
+            <div>
+                <h1>👥 Registered Students</h1>
+                <p style="color:#64748b; margin:4px 0 0; font-size:14px;">
+                    {{ students | length }} student{{ 's' if students | length != 1 else '' }} registered
+                </p>
+            </div>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <input class="search-bar" type="text" id="searchInput"
+                       placeholder="🔍 Search students…"
+                       onkeyup="filterCards()">
+                <a href="/add_student_form">
+                    <button class="btn success" style="padding:11px 22px; font-size:14px;">
+                        ➕ Add Student
+                    </button>
+                </a>
+            </div>
+        </div>
+
+        <!-- Students grid -->
+        {% if students %}
+        <div class="students-grid" id="studentGrid">
+            {% for s in students %}
+            <div class="student-card" data-name="{{ s.name | lower }}
+                 {{ s.class_name | lower }} {{ s.division | lower }}
+                 {{ s.roll_no | lower }}">
+
+                <!-- Header -->
+                <div class="card-header" onclick="event.stopPropagation()">
+                    {% if s.preview_url %}
+                        <img src="{{ s.preview_url }}" class="card-photo" alt="{{ s.name }}"
+                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                        <div class="card-avatar" style="display:none;">👤</div>
+                    {% else %}
+                        <div class="card-avatar">👤</div>
+                    {% endif %}
+
+                    <div class="card-title">
+                        <div class="card-name">{{ s.name }}</div>
+                        <div class="card-roll">Roll No: {{ s.roll_no }}</div>
+                        <div class="pill-row">
+                            <span class="pill pill-blue">📷 {{ s.sample_count }} samples</span>
+                            <span class="pill pill-green">✅ {{ s.attendance_count }} sessions</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Body -->
+                <div class="card-body" onclick="event.stopPropagation()">
+                    <div class="detail-row">
+                        <span class="detail-icon">🎓</span>
+                        <span class="detail-label">Class</span>
+                        <span class="detail-value">{{ s.class_name }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-icon">🔤</span>
+                        <span class="detail-label">Division</span>
+                        <span class="detail-value">{{ s.division }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-icon">✉️</span>
+                        <span class="detail-label">Email</span>
+                        <span class="detail-value" title="{{ s.email }}">{{ s.email }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-icon">📱</span>
+                        <span class="detail-label">Phone</span>
+                        <span class="detail-value">{{ s.phone }}</span>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="card-footer">
+                    <span class="added-date">🗓 Added {{ s.created_at }}</span>
+                    <div>
+                        <button class="view-graph-btn" onclick="openModal('{{ s.name }}'); event.stopPropagation();">
+                            📊 View Graph
+                        </button>
+                        <button class="edit-btn" onclick="openEditModal(
+                            '{{ s.name }}',
+                            '{{ s.class_name }}',
+                            '{{ s.division }}',
+                            '{{ s.roll_no }}',
+                            '{{ s.email }}',
+                            '{{ s.phone }}'
+                        ); event.stopPropagation();">✏️ Edit</button>
+                        <form action="/delete_student/{{ s.name }}" method="post" style="display: inline;"
+                              onsubmit="return confirm('Delete {{ s.name }}?\nThis removes all face data and attendance records.');">
+                            <button type="submit" class="delete-btn" onclick="event.stopPropagation();">🗑 Delete</button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <div class="empty-state">
+            <div class="icon">👥</div>
+            <h3>No students yet</h3>
+            <p>Add your first student to get started with face recognition attendance.</p>
+            <a href="/add_student_form">
+                <button class="btn success" style="padding:12px 28px; font-size:15px;">
+                    ➕ Add First Student
+                </button>
+            </a>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+<!-- Edit Student Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content" style="max-width:520px;">
+        <div class="modal-header">
+            <h2>✏️ Edit Student</h2>
+            <button class="close-btn" onclick="closeEditModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <form id="editForm" method="post">
+                <div style="background:#eff6ff; border-radius:10px; padding:14px 18px; margin-bottom:22px; font-size:13px; color:#1e40af;">
+                    ℹ️ Editing details does <strong>not</strong> change face recognition data.
+                    To update face samples, delete and re-add the student.
+                </div>
+
+                <div class="edit-form-group">
+                    <label>Full Name (read-only)</label>
+                    <input type="text" id="editName" disabled
+                           style="background:#f8fafc; color:#94a3b8; cursor:not-allowed;">
+                </div>
+
+                <div class="edit-form-grid">
+                    <div class="edit-form-group">
+                        <label>Class</label>
+                        <input type="text" name="class_name" id="editClass" placeholder="e.g. FY BSc IT">
+                    </div>
+                    <div class="edit-form-group">
+                        <label>Division</label>
+                        <input type="text" name="division" id="editDivision" placeholder="e.g. A">
+                    </div>
+                    <div class="edit-form-group">
+                        <label>Roll No</label>
+                        <input type="text" name="roll_no" id="editRoll" placeholder="e.g. 42">
+                    </div>
+                    <div class="edit-form-group">
+                        <label>Phone</label>
+                        <input type="tel" name="phone" id="editPhone" placeholder="e.g. 9876543210">
+                    </div>
+                </div>
+
+                <div class="edit-form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" id="editEmail" placeholder="student@email.com">
+                </div>
+
+                <div style="display:flex; gap:12px; margin-top:24px;">
+                    <button type="submit" class="btn primary" style="flex:1; padding:12px;">
+                        💾 Save Changes
+                    </button>
+                    <button type="button" class="btn" onclick="closeEditModal()"
+                            style="padding:12px 20px;">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for attendance graph -->
+<div id="attendanceModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalStudentName">📊 Attendance Analytics</h2>
+            <button class="close-btn" onclick="closeModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <div id="modalLoading" class="loading">
+                <p>Loading attendance data...</p>
+            </div>
+            <div id="modalStats" style="display: none;">
+                <div class="stats-row">
+                    <div class="stat-box green">
+                        <h3 id="statPresent">0</h3>
+                        <p>Present</p>
+                    </div>
+                    <div class="stat-box orange">
+                        <h3 id="statLate">0</h3>
+                        <p>Late</p>
+                    </div>
+                    <div class="stat-box red">
+                        <h3 id="statAbsent">0</h3>
+                        <p>Absent</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3 id="statRate">0%</h3>
+                        <p>Attendance Rate</p>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="attendanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-dismiss toasts
+setTimeout(() => {
+    document.querySelectorAll('.toast').forEach(t => t.remove());
+}, 3000);
+
+// Live search filter
+function filterCards() {
+    const q     = document.getElementById('searchInput').value.toLowerCase();
+    const cards = document.querySelectorAll('#studentGrid .student-card');
+    cards.forEach(card => {
+        const text = card.dataset.name || '';
+        card.style.display = text.includes(q) ? '' : 'none';
+    });
+}
+
+// Modal functions
+let currentChart = null;
+
+function openModal(studentName) {
+    const modal = document.getElementById('attendanceModal');
+    const modalStudentName = document.getElementById('modalStudentName');
+    const modalLoading = document.getElementById('modalLoading');
+    const modalStats = document.getElementById('modalStats');
+    
+    modalStudentName.textContent = `📊 ${studentName} - Last 30 Days`;
+    modal.classList.add('active');
+    modalLoading.style.display = 'block';
+    modalStats.style.display = 'none';
+    
+    // Fetch attendance data
+    fetch(`/student_attendance_data/${studentName}`)
+        .then(response => response.json())
+        .then(data => {
+            displayAttendanceChart(data);
+            modalLoading.style.display = 'none';
+            modalStats.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            modalLoading.innerHTML = '<p style="color: red;">Error loading data</p>';
+        });
+}
+
+function closeModal() {
+    const modal = document.getElementById('attendanceModal');
+    modal.classList.remove('active');
+    
+    // Destroy chart
+    if (currentChart) {
+        currentChart.destroy();
+        currentChart = null;
+    }
+}
+
+function displayAttendanceChart(data) {
+    // Calculate totals
+    const totalPresent = data.present.reduce((a, b) => a + b, 0);
+    const totalLate = data.late.reduce((a, b) => a + b, 0);
+    const totalAbsent = data.absent.reduce((a, b) => a + b, 0);
+    const total = totalPresent + totalLate + totalAbsent;
+    const rate = total > 0 ? ((totalPresent + totalLate) / total * 100).toFixed(1) : 0;
+    
+    // Update stats
+    document.getElementById('statPresent').textContent = totalPresent;
+    document.getElementById('statLate').textContent = totalLate;
+    document.getElementById('statAbsent').textContent = totalAbsent;
+    document.getElementById('statRate').textContent = rate + '%';
+    
+    // Format dates for display
+    const formattedDates = data.dates.map(dateStr => {
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    });
+    
+    // Destroy existing chart
+    if (currentChart) {
+        currentChart.destroy();
+    }
+    
+    // Create new chart
+    const ctx = document.getElementById('attendanceChart').getContext('2d');
+    currentChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: formattedDates,
+            datasets: [
+                {
+                    label: 'Present',
+                    data: data.present,
+                    backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    borderWidth: 2
+                },
+                {
+                    label: 'Late',
+                    data: data.late,
+                    backgroundColor: 'rgba(251, 146, 60, 0.8)',
+                    borderColor: 'rgba(251, 146, 60, 1)',
+                    borderWidth: 2
+                },
+                {
+                    label: 'Absent',
+                    data: data.absent,
+                    backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                    borderColor: 'rgba(239, 68, 68, 1)',
+                    borderWidth: 2
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Daily Attendance (Last 30 Days)',
+                    font: {
+                        size: 16,
+                        weight: 'bold'
+                    }
+                },
+                legend: {
+                    display: true,
+                    position: 'top',
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        footer: function(tooltipItems) {
+                            let total = 0;
+                            tooltipItems.forEach(item => {
+                                total += item.parsed.y;
+                            });
+                            return 'Total lectures: ' + total;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    stacked: true,
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    },
+                    title: {
+                        display: true,
+                        text: 'Number of Lectures'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('attendanceModal');
+    const editModal = document.getElementById('editModal');
+    if (event.target === modal) closeModal();
+    if (event.target === editModal) closeEditModal();
+}
+
+// ── Edit modal ──
+function openEditModal(name, className, division, rollNo, email, phone) {
+    document.getElementById('editName').value     = name;
+    document.getElementById('editClass').value    = className === '—' ? '' : className;
+    document.getElementById('editDivision').value = division  === '—' ? '' : division;
+    document.getElementById('editRoll').value     = rollNo    === '—' ? '' : rollNo;
+    document.getElementById('editEmail').value    = email     === '—' ? '' : email;
+    document.getElementById('editPhone').value    = phone     === '—' ? '' : phone;
+    document.getElementById('editForm').action    = `/edit_student/${encodeURIComponent(name)}`;
+    document.getElementById('editModal').classList.add('active');
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').classList.remove('active');
+}
+</script>
+
+</body>
+</html>

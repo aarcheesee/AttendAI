@@ -1,0 +1,11 @@
+users.db
+attend.db
+*.pkl
+dataset/
+static/previews/
+static/qrcodes/
+attendance_export.csv
+__pycache__/
+*.pyc
+.env
+attendai/

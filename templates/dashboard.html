@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dashboard</title>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+    /* Status badges */
+    .badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 99px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+    }
+    .badge-present { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .badge-late    { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
+    .badge-absent  { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+    /* Lecture panel */
+    .lecture-panel {
+        background: white;
+        border-radius: 14px;
+        padding: 22px 24px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        margin-bottom: 28px;
+    }
+    .lecture-panel h3 {
+        margin: 0 0 16px;
+        font-size: 15px;
+        color: #0f172a;
+        font-weight: 700;
+    }
+    .lecture-form-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+    }
+    .lecture-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    .lecture-form-group label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .lecture-form-group input {
+        padding: 9px 13px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border 0.2s;
+    }
+    .lecture-form-group input:focus {
+        outline: none;
+        border-color: #2563eb;
+    }
+
+    /* Active lecture banner */
+    .active-lecture-bar {
+        background: linear-gradient(90deg, #eff6ff, #f0fdf4);
+        border: 1px solid #bfdbfe;
+        border-radius: 12px;
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .active-lecture-bar .lec-info {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    .lec-name {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1e40af;
+    }
+    .lec-meta {
+        font-size: 13px;
+        color: #64748b;
+        display: flex;
+        gap: 16px;
+    }
+    .lec-meta span { display: flex; align-items: center; gap: 4px; }
+
+    /* Absent panel */
+    .absent-panel {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+    }
+    .absent-panel h4 {
+        margin: 0 0 10px;
+        color: #dc2626;
+        font-size: 14px;
+    }
+    .absent-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .absent-chip {
+        background: white;
+        border: 1px solid #fca5a5;
+        color: #dc2626;
+        padding: 4px 12px;
+        border-radius: 99px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    /* Section header */
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 28px 0 14px;
+    }
+    .section-header span {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    .count-pill {
+        background: #eff6ff;
+        color: #2563eb;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 99px;
+    }
+
+    /* Table tweaks */
+    .status-col { width: 100px; }
+</style>
+</head>
+
+<body>
+<div class="main">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <h2>🎓 AttendAI</h2>
+        <a href="/dashboard" style="background:#1e293b; color:white;">Dashboard</a>
+        <a href="/students">👥 Students</a>
+        <a href="/camera">📷 Start Camera</a>
+        <a href="/qr">📱 Scan QR</a>
+        <a href="/download">⬇ Download CSV</a>
+        <a href="/admin">⚙️ Admin Panel</a>
+
+        <form action="/reset" method="post" style="margin-top:8px;"
+              onsubmit="return confirm('Clear all attendance records?');">
+            <button class="btn"
+                    style="width:100%; background:#dc2626; color:white;
+                           text-align:left; padding:12px; margin-top:8px;">
+                🗑 Reset Records
+            </button>
+        </form>
+
+        <a href="/logout" style="margin-top:20px; color:#f87171;">Logout</a>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="toast-container">
+            {% for category, message in messages %}
+            <div class="toast {{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <h1 style="margin-bottom:20px;">Dashboard</h1>
+
+        <!-- STATS -->
+        <div class="stats" style="margin-bottom:24px;">
+            <div class="card">
+                <h2>{{ total }}</h2>
+                <p>Total Records</p>
+            </div>
+            <div class="card">
+                <h2>{{ students_count }}</h2>
+                <p>Registered Students</p>
+            </div>
+            <div class="card">
+                <h2>{{ records | selectattr('Status', 'equalto', 'Present') | list | length }}</h2>
+                <p>Present Today</p>
+            </div>
+            <div class="card">
+                <h2>{{ records | selectattr('Status', 'equalto', 'Late') | list | length }}</h2>
+                <p>Late Today</p>
+            </div>
+        </div>
+
+        <!-- ── ACTIVE LECTURE BANNER ── -->
+        {% if lecture != "None" %}
+        <div class="active-lecture-bar">
+            <div class="lec-info">
+                <span class="lec-name">📖 {{ lecture }}</span>
+                <div class="lec-meta">
+                    <span>🕐 Started: {{ start_time }}</span>
+                    <span>⏱ Late after: {{ late_mins }} min</span>
+                </div>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <a href="/camera">
+                    <button class="btn primary" style="padding:8px 18px; font-size:13px;">
+                        📷 Open Camera
+                    </button>
+                </a>
+                <form action="/end_lecture" method="post" style="margin:0;">
+                    <button class="btn"
+                            style="padding:8px 18px; font-size:13px;
+                                   background:#fef2f2; color:#dc2626;
+                                   border:1px solid #fecaca;">
+                        ⏹ End Lecture
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ── START LECTURE FORM ── -->
+        <div class="lecture-panel">
+            <h3>{{ '🔄 Update Lecture' if lecture != 'None' else '▶ Start New Lecture' }}</h3>
+            <form action="/set_lecture" method="post">
+                <div class="lecture-form-row">
+                    <div class="lecture-form-group">
+                        <label>Lecture Name *</label>
+                        <input type="text" name="lecture"
+                               placeholder="e.g. Operating Systems"
+                               value="{{ lecture if lecture != 'None' else '' }}"
+                               required style="width:220px;">
+                    </div>
+                    <div class="lecture-form-group">
+                        <label>Start Time</label>
+                        <input type="time" name="start_time"
+                               value="{{ start_time if start_time != 'None' else '' }}"
+                               style="width:130px;">
+                    </div>
+                    <div class="lecture-form-group">
+                        <label>Late After (mins)</label>
+                        <input type="number" name="late_after_mins"
+                               min="1" max="120"
+                               value="{{ late_mins }}"
+                               style="width:100px;">
+                    </div>
+                    <div class="lecture-form-group">
+                        <label>&nbsp;</label>
+                        <button class="btn primary" style="padding:9px 20px;">
+                            ▶ Start Lecture
+                        </button>
+                    </div>
+                    <div class="lecture-form-group">
+                        <label>&nbsp;</label>
+                        <a href="/add_student_form">
+                            <button type="button" class="btn success" style="padding:9px 20px;">
+                                📸 Add Student
+                            </button>
+                        </a>
+                    </div>
+                    <div class="lecture-form-group">
+                        <label>&nbsp;</label>
+                        <button type="button" class="btn" id="retrain-btn"
+                                style="background:#7c3aed; color:white; padding:9px 18px;"
+                                onclick="retrain()">
+                            🔄 Retrain
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- ── ABSENT STUDENTS ── -->
+        {% if absents and lecture != "None" %}
+        <div class="absent-panel">
+            <h4>🔴 Absent — {{ lecture }} · {{ today }}
+                <span style="font-weight:400; font-size:12px; margin-left:8px;">
+                    ({{ absents | length }} student{{ 's' if absents | length != 1 else '' }})
+                </span>
+            </h4>
+            <div class="absent-chips">
+                {% for s in absents %}
+                <span class="absent-chip">{{ s }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ── ATTENDANCE RECORDS TABLE ── -->
+        <div class="section-header">
+            <span>📋 Attendance Records</span>
+            <span class="count-pill">{{ total }} entries</span>
+        </div>
+
+        <div class="table-box">
+            {% if records %}
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Lecture</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th class="status-col">Status</th>
+                </tr>
+                {% for row in records %}
+                <tr>
+                    <td style="font-weight:500;">{{ row.Name }}</td>
+                    <td>{{ row.Lecture }}</td>
+                    <td style="color:#64748b;">{{ row.Date }}</td>
+                    <td style="color:#64748b;">{{ row.Time }}</td>
+                    <td>
+                        {% if row.Status == 'Present' %}
+                            <span class="badge badge-present">✅ Present</span>
+                        {% elif row.Status == 'Late' %}
+                            <span class="badge badge-late">⏰ Late</span>
+                        {% else %}
+                            <span class="badge badge-absent">❌ Absent</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <div style="text-align:center; padding:32px; color:#94a3b8; font-size:14px;">
+                No attendance records yet. Start a lecture and open the camera.
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<script>
+setTimeout(() => {
+    document.querySelectorAll('.toast').forEach(t => t.remove());
+}, 3000);
+
+async function retrain() {
+    const btn = document.getElementById('retrain-btn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Retraining…';
+    try {
+        const res  = await fetch('/api/retrain', { method: 'POST' });
+        const data = await res.json();
+        btn.textContent = `✅ Done (${data.students})`;
+    } catch (e) {
+        btn.textContent = '❌ Error';
+    }
+    setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = '🔄 Retrain';
+    }, 3000);
+}
+</script>
+
+</body>
+</html>
