@@ -6,16 +6,16 @@
 
 ## Features
 
-- Face Recognition** — Live LBPH-based face detection and recognition via webcam
-- QR Code Backup** — Students can mark attendance by scanning a personal QR code
-- Lecture Timing** — Set lecture start time and grace period; attendance auto-marked as **Present** or **Late**
-- Student Management** — Register students with photo, class, division, roll no, email, and phone
-- Attendance Dashboard** — View all records with Present / Late / Absent status badges
-- Absent Tracking** — Automatically shows who hasn't marked attendance for the active lecture
-- Per-Student Stats** — Attendance analytics per student (last 30 days)
-- CSV Export** — Download full attendance records as a spreadsheet
-- Admin Panel** — Manage system users with role-based access
-- Secure Login** — Hashed passwords with Werkzeug, session-based auth
+- Face Recognition — Live LBPH-based face detection and recognition via webcam
+- QR Code Backup — Students can mark attendance by scanning a personal QR code
+- Lecture Timing — Set lecture start time and grace period; attendance auto-marked as **Present** or **Late**
+- Student Management — Register students with photo, class, division, roll no, email, and phone
+- Attendance Dashboard — View all records with Present / Late / Absent status badges
+- Absent Tracking — Automatically shows who hasn't marked attendance for the active lecture
+- Per-Student Stats — Attendance analytics per student (last 30 days)
+- CSV Export — Download full attendance records as a spreadsheet
+- Admin Panel — Manage system users with role-based access
+- Secure Login — Hashed passwords with Werkzeug, session-based auth
 
 ---
 
@@ -105,16 +105,16 @@ Open your browser at: **http://127.0.0.1:5004**
 ## How to Use
 
  Adding a Student
-1. Go to **Students → Add Student**
+1. Go to Students → Add Student**
 2. Fill in name, class, division, roll no, email, phone
 3. Click **Save & Start Face Capture** — camera opens automatically
 4. Student looks at camera — 60 face samples are captured
 5. Model retrains automatically
 
  Taking Attendance
-1. Go to **Dashboard → Start Lecture**
+1. Go to Dashboard → Start Lecture**
 2. Enter lecture name, start time, and late-after minutes (default: 10)
-3. Click **Start Camera** — face recognition begins
+3. Click Start Camera — face recognition begins
 4. Recognised faces are marked **Present** or **Late** automatically
 
  Viewing Records
@@ -185,6 +185,6 @@ Built with Flask + OpenCV + SQLite
 
 ---
 
-## License
+License
 
 This project is for educational purposes.
